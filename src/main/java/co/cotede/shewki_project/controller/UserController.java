@@ -1,6 +1,8 @@
 package co.cotede.shewki_project.controller;
 
+import co.cotede.shewki_project.mapper.UserMapper;
 import co.cotede.shewki_project.model.User;
+import co.cotede.shewki_project.model.UserDTO;
 import co.cotede.shewki_project.service.repository.UserRepository;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,9 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private UserMapper userMapper;
+
     @GetMapping("/user")
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -24,8 +29,8 @@ public class UserController {
 
 
     @PostMapping("/user")
-    public void addUser(@RequestBody User user) {
-        userRepository.save(user);
+    public void addUser(@RequestBody UserDTO user) {
+        userRepository.save(userMapper.convertDTOtoUser(user));
     }
 
     @DeleteMapping("/user")
@@ -40,7 +45,7 @@ public class UserController {
             if(user.getFirstName() != null) e.setFirstName(user.getFirstName());
             if(user.getLastName() != null) e.setLastName(user.getLastName());
             if(user.getPassword() != null) e.setPassword(user.getPassword());
-            if(user.getUserName() != null) e.setUserName(user.getUserName());
+            if(user.getUsername() != null) e.setUsername(user.getUsername());
 
             userRepository.save(e);
         });
@@ -57,7 +62,7 @@ public class UserController {
         String password = objectNode.get("password").asText();
         String followedUserName =objectNode.get("followedUserName").asText();
 
-        Optional<User> searchedUser = userRepository.getUserByUserName(userName);
+        Optional<User> searchedUser = userRepository.getUserByUsername(userName);
 
         if(searchedUser.isEmpty()) {
             return new ResponseEntity<>("User not Found", HttpStatus.UNAUTHORIZED);
@@ -67,7 +72,7 @@ public class UserController {
             return new ResponseEntity<>("User not Found",  HttpStatus.UNAUTHORIZED);
         }
 
-        Optional<User> followedUser = userRepository.getUserByUserName(followedUserName);
+        Optional<User> followedUser = userRepository.getUserByUsername(followedUserName);
 
         if(followedUser.isEmpty()){
             return new ResponseEntity<>("Followed User Not Found" , HttpStatus.NOT_FOUND);

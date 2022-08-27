@@ -21,7 +21,7 @@ public class Post {
     private String title ;
     private String content ;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private User author;
 
 
