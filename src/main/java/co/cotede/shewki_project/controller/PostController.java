@@ -63,17 +63,12 @@ public class PostController {
     }
 
 
-    @PostMapping("/post/{username}")
-    public ResponseEntity<String> post(@PathVariable("username") String username , @RequestBody PostDTO postDTO ) {
+    @PostMapping("/post")
+    public ResponseEntity<String> post(@RequestBody PostDTO postDTO ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentPrincipal = (User) authentication.getPrincipal();
-        System.out.println(currentPrincipal);
 
-
-        System.out.println(authentication.isAuthenticated());
-
-
-        if(!currentPrincipal.getUsername().equals(username) || !authentication.isAuthenticated()) {
+        if(!authentication.isAuthenticated()) {
             return new ResponseEntity<>("Unauthorized",HttpStatus.UNAUTHORIZED);
         }
 
@@ -83,27 +78,29 @@ public class PostController {
     }
 
 //
-//    @GetMapping("/feed")
-//    public ResponseEntity<List<Post>> getFeed(@RequestBody User user)  {
-//        Optional<User> searchedUser = userRepository.getUserByUserName(user.getUsername());
-//
-//        if(searchedUser.isEmpty()) {
-//            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-//        }
-//
-//
-//        if(!searchedUser.get().getPassword().equals(user.getPassword())) {
-//            return new ResponseEntity<>( null,  HttpStatus.UNAUTHORIZED);
-//        }
-//
-//        List<Post> posts = new ArrayList<>();
-//
-//        for (User s : searchedUser.get().getFollowing()) {
-//            posts.addAll(postRepository.getAllByAuthor(s));
-//        }
-//
-//        return new ResponseEntity<>(posts, HttpStatus.OK);
-//    }
+    @GetMapping("/feed")
+    public ResponseEntity<List<PostDTO>> getFeed()  {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentPrincipal = (User) authentication.getPrincipal();
+
+        if(!authentication.isAuthenticated()) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
+
+
+
+        List<Post> posts = new ArrayList<>();
+
+        for (User s : currentPrincipal.getFollowing()) {
+            posts.addAll(postRepository.getAllByAuthor(s));
+        }
+
+        List<PostDTO> postDTOS = posts.stream()
+                .map(postMapper::postToPostDto)
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(postDTOS, HttpStatus.OK);
+    }
 
 
 

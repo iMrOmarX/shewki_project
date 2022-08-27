@@ -23,19 +23,8 @@ public class ApplicationUserDaoService implements ApplicationUserDao{
 
     @Override
     public Optional<User> selectApplicationUserByUsername(String username) {
-//        System.out.println("selecting");
         Optional<User> user = userRepository.findAll().stream().filter(e->e.getUsername().equals(username)).findFirst() ;
 
-        try{
-
-            System.out.println(user.get());
-        }
-        catch (Exception ex){
-            ex.printStackTrace();
-        }
-        System.out.println(user.isPresent());
-
-//        Optional<User> optionalUser = Optional.empty();
         return user;
     }
 

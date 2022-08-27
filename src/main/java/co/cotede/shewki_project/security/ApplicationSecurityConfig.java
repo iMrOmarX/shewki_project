@@ -42,7 +42,6 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 .httpBasic();
     }
 
-//
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.authenticationProvider(this.daoAuthenticationProvider());

@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -55,32 +57,26 @@ public class UserController {
 
 
     @PostMapping("/friends")
-    public ResponseEntity<String> addFriend(@RequestBody ObjectNode objectNode) {
+    public ResponseEntity<String> addFriend(@RequestParam("added_username") String addedUsername) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentPrincipal = (User) authentication.getPrincipal();
+        System.out.println(currentPrincipal);
+        System.out.println(authentication.isAuthenticated());
+
+        if(!authentication.isAuthenticated())
+            return new ResponseEntity<>("" , HttpStatus.UNAUTHORIZED);
 
 
-        String userName = objectNode.get("userName").asText();
-        String password = objectNode.get("password").asText();
-        String followedUserName =objectNode.get("followedUserName").asText();
-
-        Optional<User> searchedUser = userRepository.getUserByUsername(userName);
-
-        if(searchedUser.isEmpty()) {
-            return new ResponseEntity<>("User not Found", HttpStatus.UNAUTHORIZED);
-        }
-
-        if(!searchedUser.get().getPassword().equals(password)) {
-            return new ResponseEntity<>("User not Found",  HttpStatus.UNAUTHORIZED);
-        }
-
-        Optional<User> followedUser = userRepository.getUserByUsername(followedUserName);
+        Optional<User> followedUser = userRepository.getUserByUsername(addedUsername);
 
         if(followedUser.isEmpty()){
             return new ResponseEntity<>("Followed User Not Found" , HttpStatus.NOT_FOUND);
         }
 
-        searchedUser.get().getFollowing().add(followedUser.get());
+        currentPrincipal.getFollowing().add(followedUser.get());
 
-        userRepository.save(searchedUser.get());
+        userRepository.save(currentPrincipal);
 
         return new ResponseEntity<>("Follow has been Added", HttpStatus.OK);
     }
